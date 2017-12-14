@@ -6,13 +6,30 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "abuf.h"
+
 /** DEFINES **/
 
+#define KILO_VERSION "0.0.1"
+
 #define CTRL_KEY(k) ((k) & 0x1F)
+
+enum editorKey {
+	ARROW_LEFT = 1000,
+	ARROW_RIGHT,
+	ARROW_DOWN,
+	ARROW_UP,
+	DEL_KEY,
+	HOME_KEY,
+	END_KEY,
+	PAGE_UP,
+	PAGE_DOWN
+};
 
 /** DATA **/
 
 struct editorConfig {
+	int cx, cy;
 	int screenRows;
 	int screenCols;
 	struct termios orig_termios;
@@ -50,11 +67,54 @@ void enableRawMode() {
 	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
 }
 
-char editorReadKey() {
+int editorReadKey() {
 	int nread;
 	char c;
 	while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
 		if (nread == -1 && errno != EAGAIN) die("read");
+	}
+
+	if (c == '\x1b') {
+		char seq[3];
+
+		if (read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
+		if (read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
+
+		if (seq[0] == '[') {
+			// control sequence
+			if (seq[1] >= '0' && seq[1] <= '9') {
+				// detect page up/page down
+				if (read(STDIN_FILENO, &seq[2], 1) != 1) return '\x1b';
+				if (seq[2] == '~') {
+					switch (seq[1]) {
+						case '1': return HOME_KEY;
+						case '3': return DEL_KEY;
+						case '4': return END_KEY;
+						case '5': return PAGE_UP;
+						case '6': return PAGE_DOWN;
+						case '7': return HOME_KEY;
+						case '8': return END_KEY;
+					}
+				}
+			} else {
+				// arrow keys
+				switch (seq[1]) {
+					case 'A': return ARROW_UP;
+					case 'B': return ARROW_DOWN;
+					case 'C': return ARROW_RIGHT;
+					case 'D': return ARROW_LEFT;
+					case 'H': return HOME_KEY;
+					case 'F': return END_KEY;
+				}
+			}
+		} else if (seq[0] == 'O') {
+			switch (seq[1]) {
+				case 'H': return HOME_KEY;
+				case 'F': return END_KEY;
+			}
+		}
+
+		return '\x1b';
 	}
 
 	return c;
@@ -73,17 +133,16 @@ int getCursorPosition(int *rows, int *cols) {
 	}
 	buf[i] = '\0';
 
-	printf("\r\n&buf[1]: '%s'\r\n", &buf[1]);
+	if (buf[0] != '\x1b' || buf[1] != '[') return -1;
+	if (sscanf(&buf[2], "%d;%d", rows, cols) != 2) return -1;
 
-	editorReadKey();
-
-	return -1;
+	return 0;
 }
 
 int getWindowSize(int *rows, int *cols) {
 	struct winsize ws;
 
-	if (1 || ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
 		if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) return -1;
 		editorReadKey();
 		return getCursorPosition(rows, cols);
@@ -96,24 +155,74 @@ int getWindowSize(int *rows, int *cols) {
 
 /** OUTPUT **/
 
-void editorDrawRows() {
+void editorDrawRows(struct abuf *ab) {
 	for (int y = 0; y < E.screenRows; y++) {
-		write(STDOUT_FILENO, "~\r\n", 3);
+		if (y == E.screenRows / 3) {
+			char welcome[80];
+			int welcomeLen = snprintf(welcome, sizeof(welcome), "Kilo Editor --- version %s", KILO_VERSION);
+			if (welcomeLen > E.screenCols) welcomeLen = E.screenCols;
+			int padding = (E.screenCols - welcomeLen) / 2;
+			if (padding) {
+				abAppend(ab, "~", 1);
+				padding--;
+			}
+			while (padding--) abAppend(ab, " ", 1);
+			abAppend(ab, welcome, welcomeLen);
+		} else {
+			abAppend(ab, "~", 1);
+		}
+
+		abAppend(ab, "\x1b[K", 3);
+		if (y < E.screenRows - 1)
+			abAppend(ab, "\r\n", 2);
 	}
 }
 
 void editorRefreshScreen() {
-	write(STDIN_FILENO, "\x1b[2J", 4);
-	write(STDIN_FILENO, "\x1b[H", 4);
+	struct abuf ab = ABUF_INIT;
 
-	editorDrawRows();
-	write(STDOUT_FILENO, "\x1b[H", 3);
+	abAppend(&ab, "\x1b[?25l", 6);
+	abAppend(&ab, "\x1b[H", 4);
+
+	editorDrawRows(&ab);
+
+	char buf[32];
+	snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy + 1, E.cx + 1);
+	abAppend(&ab, buf, strlen(buf));
+
+	abAppend(&ab, "\x1b[?25h", 6);
+
+	write(STDOUT_FILENO, ab.b, ab.len);
+	abFree(&ab);
 }
 
 /** INPUT **/
 
+void editorMoveCursor(int key) {
+	switch (key) {
+		case ARROW_LEFT:
+			if (E.cx != 0)
+				E.cx--;
+			break;
+		case ARROW_RIGHT:
+			if (E.cx != E.screenCols - 1)
+				E.cx++;
+			break;
+		case ARROW_UP:
+			if (E.cy != 0)
+				E.cy--;
+			break;
+		case ARROW_DOWN:
+			if (E.cy != E.screenRows - 1)
+				E.cy++;
+			break;
+		default:
+			break;
+	}
+}
+
 void editorProcessKeypress() {
-	char c = editorReadKey();
+	int c = editorReadKey();
 
 	switch (c) {
 		case CTRL_KEY('q'):
@@ -121,6 +230,31 @@ void editorProcessKeypress() {
 			write(STDIN_FILENO, "\x1b[H", 4);
 			exit(0);
 			break;
+
+		case HOME_KEY:
+			E.cx = 0;
+			break;
+
+		case END_KEY:
+			E.cx = E.screenCols - 1;
+			break;
+
+		case PAGE_UP:
+		case PAGE_DOWN:
+			{
+				int times = E.screenRows;
+				while (times--)
+					editorMoveCursor((c == PAGE_UP) ? ARROW_UP : ARROW_DOWN);
+			}
+			break;
+
+		case ARROW_UP:
+		case ARROW_LEFT:
+		case ARROW_DOWN:
+		case ARROW_RIGHT:
+			editorMoveCursor(c);
+			break;
+			
 		default:
 			break;
 	}
@@ -129,6 +263,9 @@ void editorProcessKeypress() {
 /** INIT **/
 
 void initEditor() {
+	E.cx = 0;
+	E.cy = 0;
+
 	if (getWindowSize(&E.screenRows, &E.screenCols) == -1) die("getWindowSize");
 }
 
