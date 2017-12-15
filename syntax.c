@@ -27,7 +27,7 @@ struct editorSyntax HLDB[] = {
 		C_HL_extensions,
 		C_HL_keywords,
 		"//", "/*", "*/",
-		HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
+		HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS | HL_HIGHLIGHT_LIBSTRINGS
 	},
 	{
 		"python",
@@ -112,8 +112,8 @@ void editorUpdateSyntax(erow *row) {
 				prev_sep = 1;
 				continue;
 			} else {
-				if (c == '"' || c == '\'') {
-					in_string = c;
+				if ((c == '"' || c == '\'') || (E.syntax->flags & HL_HIGHLIGHT_LIBSTRINGS && c == '<')) {
+					in_string = (c == '<') ? '>' : c;
 					row->hl[i] = HL_STRING;
 					i++;
 					continue;
