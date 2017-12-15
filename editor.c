@@ -1,4 +1,5 @@
 #include "common.h"
+#include "abuf.h"
 #include "editor.h"
 #include "rowops.h"
 
@@ -15,16 +16,27 @@ void editorInsertChar(int c) {
 void editorInsertNewline() {
 	if (E.cx == 0) {
 		editorInsertRow(E.cy, "", 0);
+		E.cx = 0;		
 	} else {
 		erow *row = &E.row[E.cy];
-		editorInsertRow(E.cy + 1, &row->chars[E.cx], row->size - E.cx);
+		int indentLevel = editorIndentationLevel(row);
+
+		struct abuf ab = ABUF_INIT;
+		int rowlen = row->size - E.cx;
+		for (int i = 0; i < indentLevel; i++) abAppend(&ab, "\t", 1);	
+		abAppend(&ab, &row->chars[E.cx], rowlen);
+
+		editorInsertRow(E.cy + 1, ab.b, ab.len);
+
 		row = &E.row[E.cy];
 		row->size = E.cx;
 		row->chars[row->size] = '\0';
 		editorUpdateRow(row);
+
+		E.cx = ab.len - rowlen;
+		abFree(&ab);
 	}
 	E.cy++;
-	E.cx = 0;
 }
 
 void editorDelChar() {

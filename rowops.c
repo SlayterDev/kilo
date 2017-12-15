@@ -29,6 +29,13 @@ int editorRowRxToCx(erow *row, int rx) {
 	return cx;
 }
 
+int editorIndentationLevel(erow *row) {
+	int times = 0;
+	while (row->chars[times] == '\t') times++;
+
+	return times;
+}
+
 void editorUpdateRow(erow *row) {
 	int tabs = 0;
 	int j;
