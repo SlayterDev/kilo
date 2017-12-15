@@ -12,6 +12,15 @@ char *C_HL_keywords[] = {
 	NULL
 };
 
+char *PY_HL_extensions[] = {".py", NULL};
+char *PY_HL_keywords[] = {
+	"and", "as", "assert", "break", "class", "finally", "for", "from", "global", "if", "import", "in",
+	"is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield",
+
+	"False|", "None|", "True|",
+	NULL
+};
+
 struct editorSyntax HLDB[] = {
 	{
 		"c",
@@ -20,6 +29,13 @@ struct editorSyntax HLDB[] = {
 		"//", "/*", "*/",
 		HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
 	},
+	{
+		"python",
+		PY_HL_extensions,
+		PY_HL_keywords,
+		"#", NULL, NULL,
+		HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
+	}
 };
 
 #define HLDB_ENTRIES (sizeof(HLDB) / sizeof(HLDB[0]))
@@ -27,7 +43,7 @@ struct editorSyntax HLDB[] = {
 /** SYNTAX HIGHLIGHTING **/
 
 int is_separator(int c) {
-	return isspace(c) || c == '\0' || strchr(",.()+-/*=~%<>[];", c) != NULL;
+	return isspace(c) || c == '\0' || strchr(",.()+-/*=~%<>[];:", c) != NULL;
 }
 
 void editorUpdateSyntax(erow *row) {
