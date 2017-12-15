@@ -32,7 +32,10 @@ void editorOpen(const char *filename) {
 	editorSelectSyntaxHighlight();
 
 	FILE *fp = fopen(filename, "r");
-	if (!fp) die("fopen");
+	if (!fp) {
+		E.dirty = 0;
+		return;
+	}
 
 	char *line = NULL;
 	size_t linecap = 0;
