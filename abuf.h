@@ -1,8 +1,6 @@
 #ifndef ABUF_H
 #define ABUF_H
 
-#include <string.h>
-
 struct abuf {
 	char *b;
 	int len;

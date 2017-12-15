@@ -1,5 +1,5 @@
+#include "common.h"
 #include "abuf.h"
-#include <stdlib.h>
 
 void abAppend(struct abuf *ab, const char *s, int len) {
 	char *new = realloc(ab->b, ab->len + len);
