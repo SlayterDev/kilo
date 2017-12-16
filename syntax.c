@@ -112,7 +112,8 @@ void editorUpdateSyntax(erow *row) {
 				prev_sep = 1;
 				continue;
 			} else {
-				if ((c == '"' || c == '\'') || (E.syntax->flags & HL_HIGHLIGHT_LIBSTRINGS && c == '<')) {
+				if ((c == '"' || c == '\'') || (E.syntax->flags & HL_HIGHLIGHT_LIBSTRINGS && c == '<' && 
+				!is_separator(row->render[i + 1]))) {
 					in_string = (c == '<') ? '>' : c;
 					row->hl[i] = HL_STRING;
 					i++;
