@@ -6,7 +6,7 @@ CFLAGS=-Wall -Wextra -pedantic -std=c99
 CONFIG_PATH:=$(HOME)/.kilorc
 
 kilo: $(OBJS)
-	$(CC) $(SOURCES) -o kilo $(CFLAGS)
+	$(CC) $(OBJS) -o kilo $(CFLAGS)
 
 install: kilo
 ifeq ($(shell test -e $(CONFIG_PATH) && echo -n yes), yes)
