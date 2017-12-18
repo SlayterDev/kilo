@@ -14,6 +14,8 @@ else
 	@echo "Config file does not exist. Copying now."
 	-cp kilorc.sample $(CONFIG_PATH)
 endif
-
+	-cp kilo /usr/local/bin/
+	@echo "Executable installed at /usr/local/bin/kilo"
+	
 clean:
 	-rm *.o kilo
