@@ -1,10 +1,11 @@
-SOURCES:=kilo.o abuf.o terminal.o syntax.o rowops.o editor.o fileio.o find.o render.o input.o
+SOURCES:=$(wildcard src/*.c)
+OBJS:=$(SOURCES:.c=.o)
 
 CFLAGS=-Wall -Wextra -pedantic -std=c99
 
 CONFIG_PATH:=$(HOME)/.kilorc
 
-kilo: $(SOURCES)
+kilo: $(OBJS)
 	$(CC) $(SOURCES) -o kilo $(CFLAGS)
 
 install: kilo
@@ -18,4 +19,4 @@ endif
 	@echo "Executable installed at /usr/local/bin/kilo"
 	
 clean:
-	-rm *.o kilo
+	-rm src/*.o kilo
