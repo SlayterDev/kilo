@@ -6,6 +6,9 @@
 /** INIT **/
 
 void initEditor() {
+	E.tab_stop = KILO_TAB_STOP;
+	E.quit_times = KILO_QUIT_TIMES;
+
 	E.cx = 0;
 	E.cy = 0;
 	E.rx = 0;
@@ -27,6 +30,7 @@ void initEditor() {
 int main(int argc, char const *argv[]) {	
 	enableRawMode();
 	initEditor();
+	editorReadConfigFile();
 	if (argc >= 2) {
 		editorOpen(argv[1]);
 	}

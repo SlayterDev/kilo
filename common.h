@@ -77,6 +77,9 @@ typedef struct erow {
 } erow;
 
 struct editorConfig {
+	int tab_stop;
+	int quit_times;
+
 	int cx, cy;
 	int rx;
 	int rowoff;

@@ -82,3 +82,34 @@ void editorSave() {
 	free(buf);
 	editorSetStatusMessage("Can't save! I/O error: %s", strerror(errno));
 }
+
+void editorReadConfigFile() {
+	char configPath[4096];
+	snprintf(configPath, 4096, "%s/.kilorc", getenv("HOME"));
+
+	FILE *fp = fopen(configPath, "r");
+	if (!fp) {
+		return;
+	}
+
+	char *line = NULL;
+	size_t linecap = 0;
+	ssize_t linelen;
+	while((linelen = getline(&line, &linecap, fp)) != -1) {	
+		while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r'))
+			linelen--;
+		
+		char *tok = strtok(line, "=");
+		char *val = strtok(NULL, "=");
+		int valInt = atoi(val);
+		if (!strcmp(tok, "tab_stop")) {
+			if (valInt != 0)
+				E.tab_stop = valInt;
+		} else if (!strcmp(tok, "quit_times")) {
+			if (valInt != 0)
+				E.quit_times = valInt;
+		}
+	}
+	free(line);
+	fclose(fp);
+}

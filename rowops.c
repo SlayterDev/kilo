@@ -8,7 +8,7 @@ int editorRowCxToRx(erow *row, int cx) {
 	int rx = 0;
 	for (int j = 0; j < cx; j++) {
 		if (row->chars[j] == '\t')
-			rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
+			rx += (E.tab_stop - 1) - (rx % E.tab_stop);
 		rx++;
 	}
 
@@ -20,7 +20,7 @@ int editorRowRxToCx(erow *row, int rx) {
 	int cx;
 	for (cx = 0; cx < row->size; cx++) {
 		if (row->chars[cx] == '\t')
-			cur_rx += (KILO_TAB_STOP - 1) - (cur_rx % KILO_TAB_STOP);
+			cur_rx += (E.tab_stop - 1) - (cur_rx % E.tab_stop);
 		cur_rx++;
 
 		if (cur_rx > rx) return cx;
@@ -44,13 +44,13 @@ void editorUpdateRow(erow *row) {
 		if (row->chars[j] == '\t') tabs++;
 
 	free(row->render);
-	row->render = (char *)malloc(row->size + tabs * (KILO_TAB_STOP - 1) + 1);
+	row->render = (char *)malloc(row->size + tabs * (E.tab_stop - 1) + 1);
 
 	int idx = 0;
 	for (j = 0; j < row->size; j++) {
 		if (row->chars[j] == '\t') {
 			row->render[idx++] = ' ';
-			while (idx % KILO_TAB_STOP != 0) row->render[idx++] = ' ';
+			while (idx % E.tab_stop != 0) row->render[idx++] = ' ';
 		} else {
 			row->render[idx++] = row->chars[j];
 		}

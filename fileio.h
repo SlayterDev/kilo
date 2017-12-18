@@ -3,5 +3,6 @@
 
 void editorOpen(const char *);
 void editorSave();
+void editorReadConfigFile();
 
 #endif
