@@ -86,6 +86,7 @@ struct editorConfig {
 	int numRows;
 	erow *row;
 	int dirty;
+	int insert;
 	char *filename;
 	char statusMessage[80];
 	time_t statusmsg_time;

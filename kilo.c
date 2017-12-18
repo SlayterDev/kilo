@@ -14,6 +14,7 @@ void initEditor() {
 	E.numRows = 0;
 	E.row = NULL;
 	E.dirty = 0;
+	E.insert = 0;
 	E.filename = NULL;
 	E.statusMessage[0] = '\0';
 	E.statusmsg_time = 0;

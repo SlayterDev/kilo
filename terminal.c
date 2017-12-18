@@ -79,6 +79,21 @@ int editorReadKey() {
 		}
 
 		return '\x1b';
+	} else if (!E.insert) {
+		switch (c) {
+			case 'w':
+			case 'k':
+				return ARROW_UP;
+			case 'a':
+			case 'h':
+				return ARROW_LEFT;
+			case 's':
+			case 'j':
+				return ARROW_DOWN;
+			case 'd':
+			case 'l':
+				return ARROW_RIGHT;
+		}
 	}
 
 	return c;

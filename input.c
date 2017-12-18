@@ -83,25 +83,10 @@ void editorMoveCursor(int key) {
 		E.cx = rowlen;
 }
 
-void editorProcessKeypress() {
-	static int quit_times = KILO_QUIT_TIMES;
-
-	int c = editorReadKey();
-
+void insertModeKeypress(int c) {
 	switch (c) {
 		case '\r':
 			editorInsertNewline();
-			break;
-
-		case CTRL_KEY('q'):
-			if (E.dirty && quit_times > 0) {
-				editorSetStatusMessage("WARNING! File has unsaved changes. Press Ctrl-Q %d more times to quit.", quit_times);
-				quit_times--;
-				return;
-			}
-			write(STDIN_FILENO, "\x1b[2J", 4);
-			write(STDIN_FILENO, "\x1b[H", 4);
-			exit(0);
 			break;
 
 		case CTRL_KEY('s'):
@@ -153,12 +138,98 @@ void editorProcessKeypress() {
 
 		case CTRL_KEY('l'):
 		case '\x1b':
+			E.insert = 0;
 			break;
 			
 		default:
 			editorInsertChar(c);
 			break;
 	}
+	
+}
+
+void nonInsertModeKeypress(int c) {
+	switch (c) {
+		case CTRL_KEY('s'):
+			editorSave();
+			break;
+
+		case HOME_KEY:
+			E.cx = 0;
+			break;
+
+		case END_KEY:
+			if (E.cy < E.numRows)
+				E.cx = E.row[E.cy].size;
+			break;
+
+		case CTRL_KEY('f'):
+			editorFind();
+			break;
+
+		case BACKSPACE:
+		case CTRL_KEY('h'):
+		case DEL_KEY:
+			if (c == DEL_KEY) editorMoveCursor(ARROW_RIGHT);
+			else editorMoveCursor(ARROW_LEFT);
+			break;
+
+		case PAGE_UP:
+		case PAGE_DOWN:
+			{
+				if (c == PAGE_UP) {
+					E.cy = E.rowoff;
+				} else if (c == PAGE_DOWN) {
+					E.cy = E.rowoff + E.screenRows - 1;
+					if (E.cy > E.numRows) E.cy = E.numRows;
+				}
+
+				int times = E.screenRows;
+				while (times--)
+					editorMoveCursor((c == PAGE_UP) ? ARROW_UP : ARROW_DOWN);
+			}
+			break;
+
+		case ARROW_UP:
+		case ARROW_LEFT:
+		case ARROW_DOWN:
+		case ARROW_RIGHT:
+			editorMoveCursor(c);
+			break;
+
+		case CTRL_KEY('l'):
+		case '\x1b':
+			break;
+
+		case 'i':
+			E.insert = 1;
+			break;
+			
+		default:
+			break;
+	}
+}
+
+void editorProcessKeypress() {
+	static int quit_times = KILO_QUIT_TIMES;
+
+	int c = editorReadKey();
+
+	if (c == CTRL_KEY('q')) {
+		if (E.dirty && quit_times > 0) {
+			editorSetStatusMessage("WARNING! File has unsaved changes. Press Ctrl-Q %d more times to quit.", quit_times);
+			quit_times--;
+			return;
+		}
+		write(STDIN_FILENO, "\x1b[2J", 4);
+		write(STDIN_FILENO, "\x1b[H", 4);
+		exit(0);
+	}
+
+	if (E.insert)
+		insertModeKeypress(c);
+	else
+		nonInsertModeKeypress(c);
 
 	quit_times = KILO_QUIT_TIMES;
 }

@@ -94,8 +94,8 @@ void editorDrawStatusBar(struct abuf *ab) {
 
 	char status[80], rStatus[80];
 	
-	int len = snprintf(status, sizeof(status), "%.20s - %d lines %s", (E.filename) ? E.filename : "[No Name]", 
-		E.numRows, (E.dirty) ? "(modified)" : "");
+	int len = snprintf(status, sizeof(status), "%.20s - %d lines %s %s", (E.filename) ? E.filename : "[No Name]", 
+		E.numRows, (E.insert) ? "-- Insert --" : "", (E.dirty) ? "(modified)" : "");
 	int rlen = snprintf(rStatus, sizeof(rStatus), "%s | %d/%d", (E.syntax) ? E.syntax->filetype : "no ft",
 		E.cy + 1, E.numRows);
 
