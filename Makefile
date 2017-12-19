@@ -9,7 +9,7 @@ kilo: $(OBJS)
 	$(CC) $(OBJS) -o kilo $(CFLAGS)
 
 install: kilo
-ifeq ($(shell test -e $(CONFIG_PATH) && echo -n yes), yes)
+ifneq ("$(wildcard $(CONFIG_PATH))", "")
 	@echo "Config file exists"
 else
 	@echo "Config file does not exist. Copying now."
