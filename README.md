@@ -5,10 +5,10 @@ Simple text editor written in C. A few of its features are:
 * Auto-Indentation
 * Insert Mode
 * Status Bar which displays useful info
- -- Filename
- -- Number of lines in file
- -- Filetype (if recognized)
- -- The current line number
+    - Filename
+    - Number of lines in file
+    - Filetype (if recognized)
+    - The current line number
 
 kilo was written following [this tutorial](https://viewsourcecode.org/snaptoken/kilo/) from snapdragon. I
 have since made some changes to it to add some of my own features. One such feature being configuration
