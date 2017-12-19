@@ -216,8 +216,8 @@ void editorProcessKeypress() {
 	int c = editorReadKey();
 
 	if (c == CTRL_KEY('q')) {
-		if (quit_times > E.quit_times)
-			quit_times = E.quit_times;
+		if (quit_times > E.quit_times) // If the config is different than the default
+			quit_times = E.quit_times; // Reset quit_times
 
 		if (E.dirty && quit_times > 0) {
 			editorSetStatusMessage("WARNING! File has unsaved changes. Press Ctrl-Q %d more times to quit.", quit_times);

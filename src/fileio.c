@@ -72,7 +72,7 @@ void editorSave() {
 				close(fd);
 				free(buf);
 				E.dirty = 0;
-				editorSetStatusMessage("%d bytes written to disk", len);
+				editorSetStatusMessage("%d bytes written to %s", len, E.filename);
 				return;
 			}
 		}
@@ -95,19 +95,14 @@ void editorReadConfigFile() {
 	char *line = NULL;
 	size_t linecap = 0;
 	ssize_t linelen;
-	while((linelen = getline(&line, &linecap, fp)) != -1) {	
-		while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r'))
-			linelen--;
-		
+	while((linelen = getline(&line, &linecap, fp)) != -1) {
 		char *tok = strtok(line, "=");
 		char *val = strtok(NULL, "=");
 		int valInt = atoi(val);
-		if (!strcmp(tok, "tab_stop")) {
-			if (valInt != 0)
-				E.tab_stop = valInt;
-		} else if (!strcmp(tok, "quit_times")) {
-			if (valInt != 0)
-				E.quit_times = valInt;
+		if (!strcmp(tok, "tab_stop") && valInt != 0) {
+			E.tab_stop = valInt;
+		} else if (!strcmp(tok, "quit_times") && valInt != 0) {
+			E.quit_times = valInt;
 		}
 	}
 	free(line);
