@@ -14,10 +14,11 @@ char *C_HL_keywords[] = {
 
 char *PY_HL_extensions[] = {".py", NULL};
 char *PY_HL_keywords[] = {
-	"and", "as", "assert", "break", "class", "finally", "for", "from", "global", "if", "import", "in",
-	"is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield",
+	"and", "as", "assert", "break", "class", "finally", "for", "from", "global", "if", "elif", "else",
+	"import", "in", "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", 
+	"with", "yield", "def", "print", "del",
 
-	"False|", "None|", "True|",
+	"False|", "None|", "True|", "int|", "float|", "str|", "isinstance|", "list|",
 	NULL
 };
 
